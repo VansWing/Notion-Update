@@ -34,7 +34,7 @@ def get_all_values_by_key(json_data, target_key):
     return values
 
 
-def get_pages():
+def get_pages() -> list:
     notion_url = f"https://api.notion.com/v1/databases/{database_id_stock}/query"
 
     payload = {"page_size": 100}
@@ -62,7 +62,11 @@ def get_stock_price(ticker_no):
 
 tickers = get_pages()
 price = {}
-for ticker in tickers:
 
-    print(f"The stock no. is {ticker} now in $",get_stock_price(ticker))
+for ticker in tickers:
+    str = ticker[0]
+    if ord(str) <= 57:
+        print(f"The stock no. is {ticker} now in $",get_stock_price(ticker))
+    else:
+        print(f"The stock no. is {ticker} in US stock")
     #price.update()
