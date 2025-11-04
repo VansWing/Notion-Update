@@ -20,6 +20,15 @@ aastock_header = {
     "Referer": "http://www.aastocks.com/en/stocks/quote/detail-quote.aspx"
 }
 
+def get_USstock_price (ticker_no):
+    finnhub_client = finnhub.Client(api_key="d2j7o5hr01qqoaja10kgd2j7o5hr01qqoaja10l0")
+    price = finnhub_client.quote(ticker_no)
+    return price
+
+#Get page id
+def get_page_id (json_data, target_key):
+    page_ids = [page[target_key] for page in json_data]
+    return page_ids
 
 def get_all_values_by_key(json_data, target_key):
     values = []
@@ -60,9 +69,41 @@ def get_stock_price(ticker_no):
     soup = BeautifulSoup(req.text)
     return soup.select(".content #labelLast span")[0].text.strip(" \xa0")
 
-tickers = get_pages()
-price = {}
-for ticker in tickers:
+data = get_pages()
+tickers = data["tickers"]
+ids = data["ids"]
 
-    print(f"The stock no. is {ticker} now in $",get_stock_price(ticker))
-    #price.update()
+price = {}
+
+for ticker,id in zip(tickers, ids):
+    str = ticker[0]
+    if ord(str) <= 57:
+        value = get_stock_price(ticker)
+        print(f"The stock no. is {ticker} now in $", value)
+        PAGE_ID = id
+        url = f"https://api.notion.com/v1/pages/{PAGE_ID}"
+        print(url)
+        payload = {
+            "properties":{
+                "Current Price":{
+                    "number": value
+                }
+            }
+        }
+        response = requests.patch(url, headers=notion_headers, json=payload)
+        print(response.status_code)
+        print(response.json)
+
+        ls = []
+        ls.append(value)
+        ls.append(id)
+        price[ticker] = ls
+    else:
+        temp = get_USstock_price(ticker)
+        value = temp['c']
+        print(f"The stock no. is {ticker} in US stock now in $", value)
+        ls = []
+        ls.append(value)
+        ls.append(id)
+        price[ticker] = ls
+
